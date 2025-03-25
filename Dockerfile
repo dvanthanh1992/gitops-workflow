@@ -1,16 +1,17 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERRAFORM_LATEST_VERSION=1.11.2
 ENV PACKER_LATEST_VERSION=1.11.2
 ENV VAULT_LATEST_VERSION=1.19.0
+ENV HELMFILE_VERSION=0.171.0
 
 RUN apt-get update && \
     apt-get install -y curl wget unzip tar python3 python3-pip python3-apt \
-        apt-transport-https ca-certificates software-properties-common \
-        git direnv sshpass vim rsync openssh-client jq xorriso && \
+        apt-transport-https ca-certificates software-properties-common git gh tree\
+        direnv sshpass vim rsync openssh-client jq yq xorriso apache2-utils dos2unix && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable" && \
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable" && \
     apt-get update && \
     apt-get install -y docker-ce docker-compose-plugin && \
     apt-get clean all
@@ -42,10 +43,19 @@ RUN KUBECTL_VERSION=$(curl -s https://storage.googleapis.com/kubernetes-release/
 
 RUN curl "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3" | bash
 
-RUN curl -fsSL "https://github.com/helmfile/helmfile/releases/download/v0.171.0/helmfile_0.171.0_linux_amd64.tar.gz" \
+RUN helm plugin install https://github.com/databus23/helm-diff
+
+RUN curl -fsSL "https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz" \
     -o /tmp/helmfile.tar.gz && \
     tar -xzf /tmp/helmfile.tar.gz -C /tmp && \
     mv /tmp/helmfile /usr/local/bin/ && chmod +x /usr/local/bin/helmfile
 
 RUN curl -fsSL "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64" \
     -o /usr/local/bin/argocd && chmod +x /usr/local/bin/argocd
+
+RUN arch=$(uname -m) && \
+    [ "$arch" = "x86_64" ] && arch=amd64 && \
+    os=$(uname -s | tr '[:upper:]' '[:lower:]') && \
+    curl -L -o kargo "https://github.com/akuity/kargo/releases/latest/download/kargo-${os}-${arch}" && \
+    chmod +x kargo && \
+    mv kargo /usr/local/bin/kargo
