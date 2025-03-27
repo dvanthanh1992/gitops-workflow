@@ -1,0 +1,4 @@
+creation_rules:
+  - encrypted_regex: ".*"
+    pgp: >-
+      F4F20181AD0AD1F240F369BBEE3ABD70E6F2EB41
