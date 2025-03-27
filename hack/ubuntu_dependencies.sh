@@ -14,7 +14,7 @@ sudo apt-get update -y
 echo "🔹 Installing required packages..."
 sudo apt-get install -y curl wget unzip tar python3 python3-pip python3-apt \
     apt-transport-https ca-certificates software-properties-common git gh tree \
-    direnv sshpass vim rsync openssh-client jq yq xorriso apache2-utils dos2unix 
+    direnv sshpass rsync openssh-client jq yq xorriso apache2-utils dos2unix gnupg
 
 echo "🔹 Adding Docker repository..."
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -57,8 +57,11 @@ KUBECTL_VERSION=$(curl -s https://storage.googleapis.com/kubernetes-release/rele
 echo "🔹 Installing Helm..."
 curl "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3" | bash
 
-# Install helm-diff plugin
-helm plugin install https://github.com/databus23/helm-diff
+#  Install Helm-plugin (04/2025)
+helm plugin install https://github.com/databus23/helm-diff --version v3.10.0 
+helm plugin install https://github.com/jkroepke/helm-secrets --version v4.6.3
+curl -fsSL "https://github.com/getsops/sops/releases/download/v3.9.4/sops-v3.9.4.linux.amd64" \
+    -o /usr/local/bin/sops && chmod +x /usr/local/bin/sops
 
 # Install Helmfile
 echo "🔹 Installing Helmfile $HELMFILE_VERSION..."
@@ -71,13 +74,6 @@ curl -fsSL "https://github.com/helmfile/helmfile/releases/download/v0.171.0/helm
 echo "🔹 Installing ArgoCD CLI..."
 curl -fsSL "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64" \
     -o /usr/local/bin/argocd && chmod +x /usr/local/bin/argocd
-
-# Install Kargo CLI
-arch=$(uname -m)
-[ "$arch" = "x86_64" ] && arch=amd64
-curl -fsSL -o kargo https://github.com/akuity/kargo/releases/latest/download/kargo-"$(uname -s | tr '[:upper:]' '[:lower:]')-${arch}"
-chmod +x kargo
-mv kargo /usr/local/bin/kargo
 
 # Install Tekton CLI
 apt update;sudo apt install -y gnupg
